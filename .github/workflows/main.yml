@@ -30,13 +30,13 @@ jobs:
         id: get_version
         run: |
           VERSION=$(bun -e "import pkg from './manifest.json'; console.log(pkg.version)")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get the latest release tag
         id: get_latest_release
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/GalvinPython/reddit-subscriber-count-extension/releases/latest | grep 'tag_name' | cut -d\" -f4)
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Check version
         run: |
