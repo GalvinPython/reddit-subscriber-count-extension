@@ -1,6 +1,7 @@
 # Subreddit Subscriber Count
 
 [![Build Extension](https://github.com/GalvinPython/reddit-subscriber-count-extension/actions/workflows/main.yml/badge.svg)](https://github.com/GalvinPython/reddit-subscriber-count-extension/actions/workflows/main.yml)
+[![Static Bade](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?logo=chromewebstore)](https://chromewebstore.google.com/detail/Reddit%20Subscriber%20Count/hekppacbcflioooghbjbbhkbdacgpknp)
 
 You may be going "Doesn't Reddit already have this?". Well it **did**, but not anymore
 
