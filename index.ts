@@ -1,63 +1,67 @@
 let lastSubreddit: string | null = null;
+let lastSubredditSubscribers: number | null = null;
 
 function initSubscriberCount() {
     const url = document.location.href;
     const subredditMatch = url.match(/reddit\.com\/r\/([^/]+)/);
     const subredditName = subredditMatch ? subredditMatch[1] : null;
 
-    if (!subredditName || subredditName === lastSubreddit) return;
-    lastSubreddit = subredditName;
+    const skipFetchRequest = !subredditName || subredditName === lastSubreddit;
+    if (subredditName) lastSubreddit = subredditName;
 
     function waitForElement(selector: string, callback: (el: Element) => void) {
         const observer = new MutationObserver(() => {
             const el = document.querySelector(selector);
             if (el) {
-                observer.disconnect();
                 callback(el);
             }
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    fetch(`https://www.reddit.com/r/${subredditName}/about.json`)
-        .then((res) => {
-            if (!res.ok) {
-                throw new Error("Network response was not ok.");
-            }
-            return res.json();
-        })
-        .then((data) => {
-            const subscribers = data.data?.subscribers;
-            if (!subscribers) return;
+    if (!skipFetchRequest) {
+        fetch(`https://www.reddit.com/r/${subredditName}/about.json`)
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error("Network response was not ok.");
+                }
+                return res.json();
+            })
+            .then((data) => {
+                const subscribers = data.data?.subscribers;
+                if (!subscribers) return;
 
-            waitForElement("shreddit-subreddit-header", (header) => {
-                const shadowRoot = (header as HTMLElement).shadowRoot;
-                if (!shadowRoot) return;
+                lastSubredditSubscribers = subscribers;
 
-                const activityContainer = shadowRoot.querySelector(
-                    'div[data-testid="activity-indicators"]'
-                ) as HTMLElement | null;
-                if (!activityContainer) return;
+                waitForElement("shreddit-subreddit-header", (header) => {
+                    const shadowRoot = (header as HTMLElement).shadowRoot;
+                    if (!shadowRoot) return;
 
-                const firstChild = activityContainer.querySelector("div.flex.flex-col") as HTMLElement;
-                if (!firstChild) return;
+                    const activityContainer = shadowRoot.querySelector(
+                        'div[data-testid="activity-indicators"]'
+                    ) as HTMLElement | null;
+                    if (!activityContainer) return;
 
-                // Remove previous clone if exists
-                const oldClone = shadowRoot.querySelector(".custom-subreddit-indicator");
-                if (oldClone) oldClone.remove();
+                    const firstChild = activityContainer.querySelector("div.flex.flex-col") as HTMLElement;
+                    if (!firstChild) return;
 
-                const clone = firstChild.cloneNode(true) as HTMLElement;
-                clone.classList.add("custom-subreddit-indicator");
+                    // Remove previous clone if exists
+                    const oldClone = shadowRoot.querySelector(".custom-subreddit-indicator");
+                    if (oldClone) oldClone.remove();
 
-                const strongSpan = clone.querySelector("strong");
-                if (strongSpan) strongSpan.textContent = subscribers.toLocaleString();
+                    const clone = firstChild.cloneNode(true) as HTMLElement;
+                    clone.classList.add("custom-subreddit-indicator");
 
-                const weakSpan = clone.querySelector("span.text-\\[12px\\]");
-                if (weakSpan) weakSpan.textContent = "Subscribers";
+                    const strongSpan = clone.querySelector("strong");
+                    if (strongSpan) strongSpan.textContent = subscribers.toLocaleString();
 
-                activityContainer.appendChild(clone);
+                    const weakSpan = clone.querySelector("span.text-\\[12px\\]");
+                    if (weakSpan) weakSpan.textContent = "Subscribers";
+
+                    activityContainer.appendChild(clone);
+                });
             });
-        });
+    }
 }
 
 initSubscriberCount();
@@ -71,3 +75,11 @@ const urlObserver = new MutationObserver(() => {
     }
 });
 urlObserver.observe(document, { subtree: true, childList: true });
+
+// Observe DOM changes to re-render subscriber count
+const domObserver = new MutationObserver(() => {
+    if (lastSubreddit && lastSubredditSubscribers !== null) {
+        initSubscriberCount();
+    }
+});
+domObserver.observe(document.body, { childList: true, subtree: true });

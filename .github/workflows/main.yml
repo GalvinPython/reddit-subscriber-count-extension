@@ -6,10 +6,47 @@ on:
       - "main"
 
 jobs:
-  build:
-    name: Build Extension
+  check-version:
+    name: Check Extension Version
     runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.compare.outputs.should_build }}
+      version: ${{ steps.get_version.outputs.VERSION }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Get version from manifest.json
+        id: get_version
+        run: |
+          VERSION=$(bun -e "import pkg from './manifest.json'; console.log(pkg.version)")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get the latest release tag
+        id: get_latest_release
+        run: |
+          LATEST_TAG=$(curl -s https://api.github.com/repos/GalvinPython/reddit-subscriber-count-extension/releases/latest | grep 'tag_name' | cut -d\" -f4)
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Compare versions
+        id: compare
+        run: |
+          if [ "${{ steps.get_version.outputs.VERSION }}" != "${{ steps.get_latest_release.outputs.LATEST_TAG }}" ]; then
+            echo "New version detected: ${{ steps.get_version.outputs.VERSION }}"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version is unchanged. Skipping build."
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    needs: check-version
+    if: needs.check-version.outputs.should_build == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -26,35 +63,14 @@ jobs:
       - name: Zip dist folder
         run: zip -r reddit-subscriber-count.zip dist
 
-      - name: Get version from manifest.json
-        id: get_version
-        run: |
-          VERSION=$(bun -e "import pkg from './manifest.json'; console.log(pkg.version)")
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Get the latest release tag
-        id: get_latest_release
-        run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/GalvinPython/reddit-subscriber-count-extension/releases/latest | grep 'tag_name' | cut -d\" -f4)
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
-
-      - name: Check version
-        run: |
-          if [ "${{ steps.get_version.outputs.VERSION }}" != "${{ steps.get_latest_release.outputs.LATEST_TAG }}" ]; then
-            echo "Version has been updated to ${{ steps.get_version.outputs.VERSION }}"
-          else
-            echo "Version is the same as the latest release."
-            exit 1
-          fi
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
+          tag_name: ${{ needs.check-version.outputs.version }}
+          release_name: Release ${{ needs.check-version.outputs.version }}
           draft: false
           prerelease: false
 
