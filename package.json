@@ -1,17 +1,17 @@
 {
-  "name": "reddit-subscriber-count",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "1.2.22",
-    "sharp": "0.34.3"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "scripts": {
-    "dev": "bun build --outdir=./dist index.ts --watch --minify",
-    "dist": "bun copyToDist.ts && bun build --outdir=./dist index.ts --minify"
-  }
+    "name": "reddit-subscriber-count",
+    "module": "index.ts",
+    "type": "module",
+    "private": true,
+    "devDependencies": {
+        "@types/bun": "1.2.22",
+        "sharp": "0.34.3"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "scripts": {
+        "dev": "bun build --outdir=./dist ./src/index.ts --watch --minify",
+        "dist": "bun ./src/copyToDist.ts && bun build --outdir=./dist ./src/index.ts --minify"
+    }
 }
