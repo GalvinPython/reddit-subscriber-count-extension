@@ -21,7 +21,7 @@ After:
 
 ## 1.1.1
 
-- Removed unused and old `MutationObserver` that wasnt removed in the 1.1 update
+- Removed unused and old `MutationObserver` that wasn't removed in the 1.1 update
 
 ## 1.1
 
