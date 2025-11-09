@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import sharp from 'sharp';
 
-const distFolder = path.join(__dirname, 'dist');
-const manifestFile = path.join(__dirname, 'manifest.json');
+const distFolder = path.join(process.cwd(), 'dist');
+const manifestFile = path.join(process.cwd(), 'src/manifest.json');
 const destManifestFile = path.join(distFolder, 'manifest.json');
-const iconFile = path.join(__dirname, 'icon.png');
+const iconFile = path.join(process.cwd(), 'src/icon.png');
 const imgsFolder = path.join(distFolder, 'imgs');
 
 // Create dist folder if it doesn't exist

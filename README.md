@@ -17,6 +17,16 @@ After:
 
 ![Reddit Subscriber Count Extension](https://github.com/GalvinPython/reddit-subscriber-count-extension/blob/main/.github/assets/extension.png?raw=true)
 
+# Patch Notes
+
+## 1.1.1
+
+- Removed unused and old `MutationObserver` that wasn't removed in the 1.1 update
+
+## 1.1
+
+- Made extension work on posts
+
 # Dev instructions
 
 To install dependencies:
