@@ -67,19 +67,11 @@ function initSubscriberCount() {
 initSubscriberCount();
 
 let lastUrl = location.href;
-const urlObserver = new MutationObserver(() => {
+const observer = new MutationObserver(() => {
     const currentUrl = location.href;
-    if (currentUrl !== lastUrl) {
+    if (currentUrl !== lastUrl || (lastSubreddit && lastSubredditSubscribers !== null)) {
         lastUrl = currentUrl;
         initSubscriberCount();
     }
 });
-urlObserver.observe(document, { subtree: true, childList: true });
-
-// Observe DOM changes to re-render subscriber count
-const domObserver = new MutationObserver(() => {
-    if (lastSubreddit && lastSubredditSubscribers !== null) {
-        initSubscriberCount();
-    }
-});
-domObserver.observe(document.body, { childList: true, subtree: true });
+observer.observe(document.body ?? document, { childList: true, subtree: true });
